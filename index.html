@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive CAT Quant Formula Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: The SPA uses a fixed sidebar navigation for main topics (Arithmetic, Algebra, etc.) and a dynamic content area. This provides a familiar, book-like navigation structure. A key feature is the interactive topic weightage chart at the top, which gives users a quick visual understanding of exam priorities. A real-time search bar allows for instant formula lookup. This design was chosen to transform a static list of formulas into a fast, interactive, and efficient study tool, prioritizing quick access and usability for CAT aspirants under pressure. -->
+    <!-- Visualization & Content Choices: Report Info: CAT Quant Formulas. Goal: Organize & Inform. Viz/Presentation: Formulas are organized into collapsible sections within cards for clarity. A donut chart (Chart.js) is used to visualize topic weightage, providing a quick analytical overview. Interaction: JS-powered navigation for showing/hiding sections and a live search to filter formulas. Justification: This combination of structured layout, visual data summary (chart), and fast filtering (search) makes the dense information highly accessible and easy to navigate, which is superior to a static document. Library/Method: Chart.js for the chart, Vanilla JS for all interactions. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .formula-card {
+            transition: all 0.3s ease-in-out;
+            visibility: visible;
+            opacity: 1;
+            max-height: 1000px;
+            overflow: hidden;
+        }
+        .formula-card.hidden-card {
+            opacity: 0;
+            max-height: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            border-width: 0;
+            visibility: hidden;
+        }
+        .math {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.1em;
+        }
+        .fraction {
+            display: inline-block;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .numerator {
+            border-bottom: 1px solid currentColor;
+            display: block;
+            padding: 0 0.2em;
+        }
+        .denominator {
+            display: block;
+            padding: 0 0.2em;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="flex min-h-screen">
+        <aside class="w-64 bg-white border-r border-slate-200 p-6 fixed h-full hidden lg:block">
+            <h2 class="text-xl font-bold text-slate-900 mb-6">Quant Topics</h2>
+            <nav id="desktop-nav">
+                <ul class="space-y-2">
+                    <li><a href="#dashboard" data-target="dashboard" class="nav-link text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium rounded-lg px-3 py-2 block transition-colors duration-200">Dashboard</a></li>
+                    <li><a href="#arithmetic" data-target="arithmetic" class="nav-link text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium rounded-lg px-3 py-2 block transition-colors duration-200">Arithmetic</a></li>
+                    <li><a href="#algebra" data-target="algebra" class="nav-link text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium rounded-lg px-3 py-2 block transition-colors duration-200">Algebra</a></li>
+                    <li><a href="#geometry" data-target="geometry" class="nav-link text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium rounded-lg px-3 py-2 block transition-colors duration-200">Geometry</a></li>
+                    <li><a href="#numbers" data-target="numbers" class="nav-link text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium rounded-lg px-3 py-2 block transition-colors duration-200">Number Systems</a></li>
+                    <li><a href="#modern" data-target="modern" class="nav-link text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium rounded-lg px-3 py-2 block transition-colors duration-200">Modern Math</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="flex-1 lg:ml-64 p-4 sm:p-6 md:p-8">
+            <header class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-slate-900">CAT Quant Formula Guide</h1>
+                <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-md hover:bg-slate-100">
+                    <span class="text-2xl font-bold">☰</span>
+                </button>
+            </header>
+            
+            <div id="mobile-nav" class="hidden lg:hidden mb-6">
+                 <select id="mobile-nav-select" class="w-full p-3 border border-slate-300 rounded-lg bg-white">
+                    <option value="dashboard">Dashboard</option>
+                    <option value="arithmetic">Arithmetic</option>
+                    <option value="algebra">Algebra</option>
+                    <option value="geometry">Geometry</option>
+                    <option value="numbers">Number Systems</option>
+                    <option value="modern">Modern Math</option>
+                </select>
+            </div>
+
+            <div class="relative mb-6">
+                <input type="text" id="search-bar" placeholder="🔍 Search for a formula (e.g., Pythagoras, Profit)..." class="w-full p-3 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+            </div>
+
+            <div id="content-container">
+                <section id="dashboard" class="content-section">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h2 class="text-2xl font-semibold text-slate-800 mb-4 text-center">CAT Quant Topic Weightage</h2>
+                        <p class="text-center text-slate-600 mb-6 max-w-2xl mx-auto">This chart provides an estimated breakdown of how frequently topics appear in the CAT's Quantitative Aptitude section. Use it to guide your study priorities. While Arithmetic and Algebra form the bulk of the exam, a balanced preparation across all topics is key to a high score.</p>
+                        <div class="chart-container">
+                            <canvas id="weightageChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="arithmetic" class="content-section hidden">
+                    <h2 class="text-2xl font-semibold text-slate-800 mb-4">Arithmetic</h2>
+                    <p class="text-slate-600 mb-6">Arithmetic consistently forms the largest part of the Quant section. A strong foundation here is essential for tackling a significant portion of the exam questions, covering everything from basic calculations to complex problems involving profit, loss, interest, and rates.</p>
+                    <div class="space-y-4">
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Percentages">Percentages</h3>
+                            <p><strong class="font-medium">Percentage Change:</strong> <span class="math"><span class="fraction"><span class="numerator">Final Value - Initial Value</span><span class="denominator">Initial Value</span></span> &times; 100</span></p>
+                            <p><strong class="font-medium">Successive Change (x%, y%):</strong> <span class="math">(x + y + <span class="fraction"><span class="numerator">xy</span><span class="denominator">100</span></span>)%</span></p>
+                        </div>
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Profit and Loss">Profit and Loss</h3>
+                            <p><strong class="font-medium">Profit</strong> = SP &ndash; CP</p>
+                            <p><strong class="font-medium">Loss</strong> = CP &ndash; SP</p>
+                            <p><strong class="font-medium">Profit %:</strong> <span class="math">(<span class="fraction"><span class="numerator">Profit</span><span class="denominator">CP</span></span>) &times; 100</span></p>
+                            <p><strong class="font-medium">Discount:</strong> MP &ndash; SP</p>
+                        </div>
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Simple & Compound Interest">Simple & Compound Interest</h3>
+                            <p><strong class="font-medium">Simple Interest (SI):</strong> <span class="math"><span class="fraction"><span class="numerator">P &times; R &times; T</span><span class="denominator">100</span></span></span></p>
+                            <p><strong class="font-medium">Compound Interest (CI):</strong> <span class="math">P(1 + <span class="fraction"><span class="numerator">R</span><span class="denominator">100</span></span>)<sup>T</sup> - P</span></p>
+                            <p><strong class="font-medium">CI-SI Difference (2 yrs):</strong> <span class="math">P(<span class="fraction"><span class="numerator">R</span><span class="denominator">100</span></span>)<sup>2</sup></span></p>
+                        </div>
+                         <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Averages, Mixtures & Alligations">Averages, Mixtures & Alligations</h3>
+                            <p><strong class="font-medium">Average:</strong> <span class="math"><span class="fraction"><span class="numerator">Sum of Observations</span><span class="denominator">Number of Observations</span></span></span></p>
+                            <p><strong class="font-medium">Weighted Average:</strong> <span class="math"><span class="fraction"><span class="numerator">w<sub>1</sub>x<sub>1</sub> + w<sub>2</sub>x<sub>2</sub> + ...</span><span class="denominator">w<sub>1</sub> + w<sub>2</sub> + ...</span></span></span></p>
+                        </div>
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Time, Speed, and Distance">Time, Speed, and Distance</h3>
+                            <p><strong class="font-medium">Distance</strong> = Speed &times; Time</p>
+                            <p><strong class="font-medium">Average Speed (equal distances):</strong> <span class="math"><span class="fraction"><span class="numerator">2xy</span><span class="denominator">x+y</span></span></span></p>
+                            <p><strong class="font-medium">Relative Speed (opposite):</strong> S<sub>1</sub> + S<sub>2</sub></p>
+                            <p><strong class="font-medium">Relative Speed (same):</strong> |S<sub>1</sub> - S<sub>2</sub>|</p>
+                        </div>
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Time and Work">Time and Work</h3>
+                            <p><strong class="font-medium">A & B Together:</strong> <span class="math"><span class="fraction"><span class="numerator">ab</span><span class="denominator">a+b</span></span></span> days</p>
+                            <p><strong class="font-medium">Total Work</strong> = Efficiency &times; Time</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="algebra" class="content-section hidden">
+                    <h2 class="text-2xl font-semibold text-slate-800 mb-4">Algebra</h2>
+                    <p class="text-slate-600 mb-6">Algebra is a close second to Arithmetic in terms of question frequency. Mastery of algebraic manipulations, equations, and functions is critical for solving a wide variety of problems that test your logical and abstract reasoning skills.</p>
+                    <div class="space-y-4">
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Algebraic Identities">Algebraic Identities</h3>
+                            <p><span class="math">(a+b)<sup>2</sup> = a<sup>2</sup> + 2ab + b<sup>2</sup></span></p>
+                            <p><span class="math">(a-b)<sup>2</sup> = a<sup>2</sup> - 2ab + b<sup>2</sup></span></p>
+                            <p><span class="math">a<sup>2</sup> - b<sup>2</sup> = (a+b)(a-b)</span></p>
+                            <p><span class="math">a<sup>3</sup> + b<sup>3</sup> = (a+b)(a<sup>2</sup> - ab + b<sup>2</sup>)</span></p>
+                            <p>If <span class="math">a+b+c = 0</span>, then <span class="math">a<sup>3</sup> + b<sup>3</sup> + c<sup>3</sup> = 3abc</span></p>
+                        </div>
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Quadratic Equations">Quadratic Equations (ax²+bx+c=0)</h3>
+                            <p><strong class="font-medium">Roots (x):</strong> <span class="math"><span class="fraction"><span class="numerator">-b &plusmn; &radic;(b<sup>2</sup>-4ac)</span><span class="denominator">2a</span></span></span></p>
+                            <p><strong class="font-medium">Sum of roots:</strong> <span class="math">-<span class="fraction"><span class="numerator">b</span><span class="denominator">a</span></span></span></p>
+                            <p><strong class="font-medium">Product of roots:</strong> <span class="math"><span class="fraction"><span class="numerator">c</span><span class="denominator">a</span></span></span></p>
+                        </div>
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Logarithms">Logarithms</h3>
+                            <p><span class="math">log(ab) = log(a) + log(b)</span></p>
+                            <p><span class="math">log(<span class="fraction"><span class="numerator">a</span><span class="denominator">b</span></span>) = log(a) - log(b)</span></p>
+                            <p><span class="math">log(a<sup>b</sup>) = b log(a)</span></p>
+                            <p><strong class="font-medium">Change of Base:</strong> <span class="math">log<sub>b</sub>a = <span class="fraction"><span class="numerator">log<sub>c</sub>a</span><span class="denominator">log<sub>c</sub>b</span></span></span></p>
+                        </div>
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Progressions (AP & GP)">Progressions (AP & GP)</h3>
+                            <p><strong class="font-medium">AP (nth term):</strong> <span class="math">a<sub>n</sub> = a + (n-1)d</span></p>
+                            <p><strong class="font-medium">AP (Sum):</strong> <span class="math">S<sub>n</sub> = <span class="fraction"><span class="numerator">n</span><span class="denominator">2</span></span>[2a + (n-1)d]</span></p>
+                            <p><strong class="font-medium">GP (nth term):</strong> <span class="math">a<sub>n</sub> = ar<sup>n-1</sup></span></p>
+                            <p><strong class="font-medium">GP (Sum of infinite):</strong> <span class="math">S<sub>&infin;</sub> = <span class="fraction"><span class="numerator">a</span><span class="denominator">1-r</span></span></span> for |r|&lt;1</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="geometry" class="content-section hidden">
+                    <h2 class="text-2xl font-semibold text-slate-800 mb-4">Geometry & Mensuration</h2>
+                    <p class="text-slate-600 mb-6">Geometry and Mensuration questions test your spatial reasoning and ability to apply formulas to various shapes. This section covers everything from basic properties of lines and triangles to the volumes and surface areas of 3D objects, requiring both visualization and calculation skills.</p>
+                    <div class="space-y-4">
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Triangles">Triangles</h3>
+                            <p><strong class="font-medium">Area:</strong> <span class="math"><span class="fraction"><span class="numerator">1</span><span class="denominator">2</span></span> &times; base &times; height</span></p>
+                            <p><strong class="font-medium">Heron's Formula:</strong> <span class="math">&radic;(s(s-a)(s-b)(s-c))</span></p>
+                            <p><strong class="font-medium">Pythagoras Theorem:</strong> <span class="math">a<sup>2</sup> + b<sup>2</sup> = c<sup>2</sup></span></p>
+                            <p><strong class="font-medium">Area of Equilateral Triangle:</strong> <span class="math"><span class="fraction"><span class="numerator">&radic;3</span><span class="denominator">4</span></span> a<sup>2</sup></span></p>
+                        </div>
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Circles">Circles</h3>
+                            <p><strong class="font-medium">Area:</strong> <span class="math">&pi;r<sup>2</sup></span></p>
+                            <p><strong class="font-medium">Circumference:</strong> <span class="math">2&pi;r</span></p>
+                            <p><strong class="font-medium">Length of Arc:</strong> <span class="math"><span class="fraction"><span class="numerator">&theta;</span><span class="denominator">360</span></span> &times; 2&pi;r</span></p>
+                        </div>
+                         <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="3D Mensuration">3D Mensuration</h3>
+                            <p><strong class="font-medium">Cube Volume:</strong> <span class="math">a<sup>3</sup></span></p>
+                            <p><strong class="font-medium">Cylinder Volume:</strong> <span class="math">&pi;r<sup>2</sup>h</span></p>
+                            <p><strong class="font-medium">Cone Volume:</strong> <span class="math"><span class="fraction"><span class="numerator">1</span><span class="denominator">3</span></span>&pi;r<sup>2</sup>h</span></p>
+                            <p><strong class="font-medium">Sphere Volume:</strong> <span class="math"><span class="fraction"><span class="numerator">4</span><span class="denominator">3</span></span>&pi;r<sup>3</sup></span></p>
+                        </div>
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Coordinate Geometry">Coordinate Geometry</h3>
+                            <p><strong class="font-medium">Distance Formula:</strong> <span class="math">&radic;((x<sub>2</sub>-x<sub>1</sub>)<sup>2</sup> + (y<sub>2</sub>-y<sub>1</sub>)<sup>2</sup>)</span></p>
+                            <p><strong class="font-medium">Slope (m):</strong> <span class="math"><span class="fraction"><span class="numerator">y<sub>2</sub>-y<sub>1</sub></span><span class="denominator">x<sub>2</sub>-x<sub>1</sub></span></span></span></p>
+                            <p><strong class="font-medium">Line Equation:</strong> <span class="math">y = mx + c</span></p>
+                        </div>
+                    </div>
+                </section>
+                
+                <section id="numbers" class="content-section hidden">
+                    <h2 class="text-2xl font-semibold text-slate-800 mb-4">Number Systems</h2>
+                    <p class="text-slate-600 mb-6">The Number Systems topic covers the fundamental properties and relationships of numbers. Questions often test your knowledge of divisibility, factors, multiples, and the structure of number series. A solid grasp of these concepts is crucial for solving logic-based quantitative problems.</p>
+                     <div class="space-y-4">
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="HCF and LCM">HCF and LCM</h3>
+                            <p><strong class="font-medium">HCF &times; LCM</strong> = Product of the two numbers</p>
+                            <p><strong class="font-medium">Divisibility Rules:</strong> Knowledge for 2, 3, 4, 5, 6, 8, 9, 11 is vital.</p>
+                        </div>
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Summation Formulas">Summation Formulas</h3>
+                            <p><strong class="font-medium">Sum of first n numbers:</strong> <span class="math"><span class="fraction"><span class="numerator">n(n+1)</span><span class="denominator">2</span></span></span></p>
+                            <p><strong class="font-medium">Sum of first n squares:</strong> <span class="math"><span class="fraction"><span class="numerator">n(n+1)(2n+1)</span><span class="denominator">6</span></span></span></p>
+                            <p><strong class="font-medium">Sum of first n cubes:</strong> <span class="math">(<span class="fraction"><span class="numerator">n(n+1)</span><span class="denominator">2</span></span>)<sup>2</sup></span></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="modern" class="content-section hidden">
+                    <h2 class="text-2xl font-semibold text-slate-800 mb-4">Modern Mathematics</h2>
+                    <p class="text-slate-600 mb-6">Modern Math includes topics that require logical reasoning and systematic counting. While having fewer questions compared to Arithmetic or Algebra, these topics can be high-scoring if the fundamental concepts of arrangements, selections, and probability are well understood.</p>
+                    <div class="space-y-4">
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Permutation & Combination">Permutation & Combination</h3>
+                            <p><strong class="font-medium">Permutation (Arrangement):</strong> <span class="math"><sup>n</sup>P<sub>r</sub> = <span class="fraction"><span class="numerator">n!</span><span class="denominator">(n-r)!</span></span></span></p>
+                            <p><strong class="font-medium">Combination (Selection):</strong> <span class="math"><sup>n</sup>C<sub>r</sub> = <span class="fraction"><span class="numerator">n!</span><span class="denominator">(n-r)!r!</span></span></span></p>
+                        </div>
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Probability">Probability</h3>
+                            <p><strong class="font-medium">P(Event):</strong> <span class="math"><span class="fraction"><span class="numerator">Favorable Outcomes</span><span class="denominator">Total Outcomes</span></span></span></p>
+                            <p><span class="math">P(A &cup; B) = P(A) + P(B) - P(A &cap; B)</span></p>
+                        </div>
+                        <div class="formula-card bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-semibold text-lg mb-2" data-title="Set Theory">Set Theory</h3>
+                            <p><span class="math">n(A &cup; B) = n(A) + n(B) - n(A &cap; B)</span></p>
+                            <p><span class="math">n(A &cup; B &cup; C) = n(A) + n(B) + n(C) - n(A &cap; B) - n(B &cap; C) - n(C &cap; A) + n(A &cap; B &cap; C)</span></p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const mobileNavSelect = document.getElementById('mobile-nav-select');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileNav = document.getElementById('mobile-nav');
+            const searchBar = document.getElementById('search-bar');
+            const formulaCards = document.querySelectorAll('.formula-card');
+
+            function setActiveLink(targetId) {
+                navLinks.forEach(link => {
+                    if (link.dataset.target === targetId) {
+                        link.classList.add('bg-slate-200', 'text-slate-900');
+                        link.classList.remove('text-slate-600');
+                    } else {
+                        link.classList.remove('bg-slate-200', 'text-slate-900');
+                        link.classList.add('text-slate-600');
+                    }
+                });
+            }
+
+            function showSection(targetId) {
+                contentSections.forEach(section => {
+                    if (section.id === targetId) {
+                        section.classList.remove('hidden');
+                    } else {
+                        section.classList.add('hidden');
+                    }
+                });
+                setActiveLink(targetId);
+                if(mobileNavSelect.value !== targetId) {
+                    mobileNavSelect.value = targetId;
+                }
+            }
+            
+            function handleNavigation(event) {
+                event.preventDefault();
+                const targetId = this.dataset.target;
+                showSection(targetId);
+                window.history.pushState({id: targetId}, '', `#${targetId}`);
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', handleNavigation);
+            });
+
+            mobileNavSelect.addEventListener('change', function() {
+                showSection(this.value);
+                window.history.pushState({id: this.value}, '', `#${this.value}`);
+            });
+            
+            mobileMenuBtn.addEventListener('click', function() {
+                mobileNav.classList.toggle('hidden');
+            });
+
+            window.addEventListener('popstate', function(event) {
+                if (event.state && event.state.id) {
+                    showSection(event.state.id);
+                }
+            });
+
+            searchBar.addEventListener('keyup', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                
+                formulaCards.forEach(card => {
+                    const title = card.querySelector('h3').dataset.title.toLowerCase();
+                    const content = card.textContent.toLowerCase();
+                    if (title.includes(searchTerm) || content.includes(searchTerm)) {
+                        card.classList.remove('hidden-card');
+                    } else {
+                        card.classList.add('hidden-card');
+                    }
+                });
+            });
+
+            const ctx = document.getElementById('weightageChart').getContext('2d');
+            const weightageChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Arithmetic', 'Algebra', 'Geometry', 'Number Systems', 'Modern Math'],
+                    datasets: [{
+                        label: 'Topic Weightage',
+                        data: [40, 25, 15, 10, 10],
+                        backgroundColor: [
+                            '#3b82f6', // blue-500
+                            '#10b981', // emerald-500
+                            '#f97316', // orange-500
+                            '#8b5cf6', // violet-500
+                            '#ec4899'  // pink-500
+                        ],
+                        borderColor: '#f8fafc',
+                        borderWidth: 4,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 14,
+                                    family: 'Inter'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+
+            const initialSection = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
+            showSection(initialSection);
+        });
+    </script>
+</body>
+</html>
